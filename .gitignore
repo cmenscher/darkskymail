@@ -1,0 +1,4 @@
+*.sublime*
+/ignored/
+*.pyc
+/.DS_Store
