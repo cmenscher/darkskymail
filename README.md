@@ -24,6 +24,8 @@ Directions
 Once DarkSkyMail is running, be sure to include a valid address in the "location" field of the calendar event!  I am using the Google geocoding API, though, so it's quite forgiving.
 
 TIP:  This script works great when sending an email through an SMS gateway.  (i.e. 2122222222@vtext.com for a Verizon Wireless phone.)  But you might want to add a value to the "alert_subject" setting and make it shorter than the default.  You might also want to be sure to set the 'include_day_summary' and include_map' settings to False.
+
+
 ![Sample SMS](https://dl.dropbox.com/s/7ky4ej5d90r17pd/screenshot_sms.png?dl=1)
 
 FAQ
