@@ -86,7 +86,7 @@ class Dark_Sky_Alert:
 			html = "<html><head></head><body>%s<p><img src='%s' /></p><p><a href='http://darkskyapp.com'>Powered by Dark Sky</a></p></body></html>" % (body_text, static_map_url)
 			body_text = "%s\n\n%s" % (body_text, static_map_url)
 		else:
-			html = "<html><head></head><body>%s<p><a href='http://darkskyapp.com'>Powered by Dark Sky</a></p></body></html>" % (body_text, static_map_url)
+			html = "<html><head></head><body>%s<p><a href='http://darkskyapp.com'>Powered by Dark Sky</a></p></body></html>" % (body_text)
 
 		alert = {"subject": subject, "body_text": body_text, "body_html": html}
 		return alert

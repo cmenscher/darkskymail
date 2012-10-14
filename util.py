@@ -68,7 +68,7 @@ class IMAP_Fetch:
 
       deleteme.sort()
       for number in deleteme:
-        log("Moving message to 'Processed' folder...")
+        log("Deleting event data message...")
         mbox.copy(number, 'Processed')
         mbox.store(number, "+FLAGS.SILENT", '(\\Deleted)')
 
