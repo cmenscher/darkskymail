@@ -1,8 +1,7 @@
 What does this do?
 ===========
 
-This script checks an email inbox via IMAP for a message from IFTT that triggers a precipitation forecast for an upcoming Google Calendar event's location and mails the result.
-
+This script checks an email inbox via IMAP for a message from IFTT that contains location and start time data for a Google Calendar event, triggered 15 minutes before it is scheduled to start. The script gathers the emails and emails a precipitation forecast for the Google Calendar event using the awesome Dark Sky API *(https://developer.darkskyapp.com).  BUY THE APP! http://darkskyapp.com/
 
 
 Requirements
@@ -11,8 +10,6 @@ Requirements
 A Dark Sky API key (https://developer.darkskyapp.com/)
 An IMAP email inbox
 A box to run darkskymail.py as a service
-An IFTT.com account
-
 
 
 Directions
@@ -24,15 +21,9 @@ Directions
 4.  Run darkskymail.py
 5.  Profit.
 
-Once DarkSkyMail is running, be sure to include a valid address in the "location" field of the calendar event!
+Once DarkSkyMail is running, be sure to include a valid address in the "location" field of the calendar event!  I am using the Google geocoding API, though, so it's quite forgiving.
 
-
-To Do
-=====
-
-1.  Add looping to darkskymail.py and adhere to the fetch_interval in settings.py
-2.  Gracefully handle missing/bad addresses in the email.
-
+TIP:  This script works great when sending an email through an SMS gateway.  (i.e. 2122222222@vtext.com for a Verizon Wireless phone.)  But you might want to add a value to the "alert_subject" setting and make it shorter than the default.  You might also want to be sure to set the 'include_day_summary' and include_map' settings to False.
 
 
 FAQ
@@ -48,6 +39,12 @@ FAQ
 
 3.  What does the email data look like?
 	
-	The body of an event email is literally just the start date and time of the event, then a semicolon, and then the address you entered in the "location" field for the event. Here's an example:
+	The subject of an email must have "[darkskymail]" in it or the script will skip right over it.
 
-	October 13, 2012 at 01:21AM;1600 Amphitheatre Pkwy, Mountain View, CA 94043
+	The body of an event email is just the address you entered in the "location" field for the event, then a semicolon, then the start date and time of the event. Here's an example:
+
+	1600 Amphitheatre Pkwy, Mountain View, CA 94043;October 13, 2012 at 01:21AM
+
+4.  I have hundreds/thousands of emails in my inbox and this script iterates through each one every time.  This is useless to me.
+
+	I created this script to be used with a single-purpose email address to which IFTT can send these messages.  I don't know how to optimize finding these emails in a huge inbox, and since GMail is free and easy I just went with that solution.  But feel free to fix this!

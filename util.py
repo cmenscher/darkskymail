@@ -19,10 +19,12 @@ import settings
 
 class IMAP_Fetch:
 
-  def get_mail(self, host, imap_user, imap_password, delete_messages=False):
+  def get_mail(self, host, port, imap_user, imap_password, use_ssl=True, delete_messages=False):
     try:
-      #mbox = imaplib.IMAP4(host)
-      mbox = imaplib.IMAP4_SSL(host, 993)
+      if use_ssl:
+        mbox = imaplib.IMAP4_SSL(host, port)
+      else:
+        mbox = imaplib.IMAP4(host, port)
     except:
       typ,val = sys.exc_info()[:2]
       self.error('Could not connect to IMAP server "%s": %s'
