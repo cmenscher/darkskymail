@@ -100,39 +100,50 @@ class IMAP_Fetch:
     return message_content
 
 
-def send_mail(smtp_server, smtp_user, smtppass, port, to, fro, subject, text, attachment=None):
+def send_mail(smtp_server, smtp_user, smtppass, port, to, fro, subject, text, html="", attachment=None):
   """
     USAGE: send_mail("smtp.gmail.com", alertFrom, alertPass, 587, [alertTo], alertFrom, subj, body,["/path/to/file/include"])
   """
   assert type(to)==list
 
-  msg = MIMEMultipart()
+  if html != "":
+    msg = MIMEMultipart('alternative')
+  else:
+    msg = MIMEMultipart()
+
   msg['From'] = fro
   msg['To'] = COMMASPACE.join(to)
   msg['Date'] = formatdate(localtime=True)
   msg['Subject'] = subject
 
   msg.attach( MIMEText(text) )
-  part = MIMEBase('application', "octet-stream")
   #part.set_payload( open(filename,"rb").read() )
   #Encoders.encode_base64(part)
   #part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(filetitle))
   if attachment:
+    attachment_part = MIMEBase('application', "octet-stream")
     try:
         filename = str(attachment["filename"]).strip()
         filetitle = str(attachment["title"]).strip()
         if filetitle == "":
           filetitle = os.path.basename(filename)
         filetitle = filetitle + "." + str(attachment["type"]).lower()
-        part.set_payload( open(filename,"rb").read() )
+        attachment_part.set_payload( open(filename,"rb").read() )
         Encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"' % filetitle)
-        msg.attach(part)
+        attachment_part.add_header('Content-Disposition', 'attachment; filename="%s"' % filetitle)
+        msg.attach(attachment_part)
     except:
-        part.set_payload( open(file,"rb").read() )
+        attachment_part.set_payload( open(file,"rb").read() )
         Encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file))
-        msg.attach(part)
+        attachment_part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file))
+        msg.attach(attachment_part)
+
+  part1 = MIMEText(text, 'plain')
+  msg.attach(part1)
+
+  if html != "":
+    part2 = MIMEText(html, 'html')
+    msg.attach(part2)
 
   smtp = smtplib.SMTP(smtp_server, port)
   smtp.ehlo()

@@ -31,8 +31,7 @@ To Do
 =====
 
 1.  Add looping to darkskymail.py and adhere to the fetch_interval in settings.py
-2.  Include a link/attachment with a Google Static Map of the address
-3.  Gracefully handle missing/bad addresses in the email.
+2.  Gracefully handle missing/bad addresses in the email.
 
 
 

@@ -4,6 +4,7 @@ import os, shutil
 import datetime
 import settings
 import json
+from time import sleep
 
 class Dark_Sky_Alert:
 	def __init__(self):
@@ -28,8 +29,8 @@ class Dark_Sky_Alert:
 			#turn the message content into actionable data
 			message_data = message_content.split(';') #10/12/2003;257 Central Park West
 			if len(message_data) == 2:
-				start = message_data[0]
-				address = message_data[1]
+				start = message_data[1]
+				address = message_data[0]
 			else:
 				log("No message found with event content.")
 			
@@ -50,7 +51,7 @@ class Dark_Sky_Alert:
 				forecast_data_val = util.get_forecast(self.settings.dark_sky_API_key, lat, lon)
 				forecast_data = json.loads(forecast_data_val)
 
-				email_data = {"address": address, "formatted_address": geo_data["results"][0]["formatted_address"], "lat": lat, "lon": lon, "darksky": forecast_data}
+				email_data = {"address": address, "formatted_address": geo_data["results"][0]["formatted_address"], "start": start, "lat": lat, "lon": lon, "darksky": forecast_data}
 		else:
 			log("No Google event email found.")
 
@@ -59,40 +60,74 @@ class Dark_Sky_Alert:
 	def package_alert(self, email_data):
 		""" This will create the alert text based on the captured venue and forecast data """
 		alert = None
-		subject = "Forecast at %s..." % email_data["address"] #add the venue name when we have it
-		body = "It is currently %sF and " % email_data["darksky"]["currentTemp"]
+		subject = "Current weather at your appointment on %s" % email_data["start"]
+
+		#This will override the default subject with the custom subject in settings.py
+		#This is particularly useful if you send the text as an SMS (to shorten it)
+		if self.settings.alert_subject:
+			subject = self.settings.alert_subject
+
+		static_map_url = "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=16&size=300x200&maptype=roadmap&markers=color:blue|label:Event|%s,%s&sensor=false" % (email_data["address"], email_data["lat"], email_data["lon"])
+
+		body_text = "It is currently %sF and " % email_data["darksky"]["currentTemp"]
 
 		if not email_data["darksky"]["isPrecipitating"]:
-			body = body + "not "
+			body_text = body_text + "not"
 
-		body = body + "raining at your upcoming appointment's address '%s'. It will be %s, and %s in the the next hour." % (email_data["address"], email_data["darksky"]["hourSummary"], email_data["darksky"]["daySummary"])
+		body_text = "%s raining at your next appointment ('%s'). It will be %s in the next hour" % (body_text, email_data["address"], email_data["darksky"]["hourSummary"])
 
-		alert = {"subject": subject, "body": body}
+		if self.settings.include_day_summary:
+			body_text = "%s, with %s through tomorrow." % (body_text, email_data["darksky"]["daySummary"])
+		else:
+			body_text = "%s." % body_text
+
+		html = "<html><head></head><body>%s<p><img src='%s' /></p></body></html>" % (body_text, static_map_url)
+
+		#now add the static map URL to the body text
+		if self.settings.include_map:
+			body_text = "%s\n\n%s" % (body_text, static_map_url)
+
+		alert = {"subject": subject, "body_text": body_text, "body_html": html}
 		return alert
 
 	def send_alert(self, alert):
 		""" This will take the alert and mail it """
 
-		send_alert_result = util.send_mail(self.settings.smtp_server, self.settings.smtp_user, self.settings.smtp_password, self.settings.smtp_port, [self.settings.alert_to], self.settings.alert_from, alert["subject"], alert["body"], [])
+		send_alert_result = util.send_mail(self.settings.smtp_server, self.settings.smtp_user, self.settings.smtp_password, self.settings.smtp_port, [self.settings.alert_to], self.settings.alert_from, alert["subject"], alert["body_text"], alert["body_html"], [])
 		return send_alert_result
 
 	def execute(self):
-		email_data = self.get_data()
-		
 		alert = None
-		if(email_data):
-			alert = self.package_alert(email_data)
-
 		send_alert_result = None
-		if(alert):
-			send_alert_result = self.send_alert(alert)
+
+		email_data = self.get_data()
+
+		if(email_data):
+			#only proceed if it's going to rain or the settings say to always send
+			if self.settings.send_even_when_clear or email_data["darksky"]["minutesUntilChange"] > 0:
+				alert = self.package_alert(email_data)
+
+				if(alert):
+					send_alert_result = self.send_alert(alert)
+			else:
+				log("NO ALERT EMAIL: It's not raining, nor will it in the next hour. (Change 'send_even_when_clear' setting to send anyway.)")
+		
 		return send_alert_result
 
 def main():
-	log("\n" + str(datetime.datetime.now()) + "\nStarting alert!")
-	alert = Dark_Sky_Alert()
-	alert.execute()
-	log("DarkSkyMail complete!\n")
+	log("Dark Sky Mail initiated!")
+	log("\n" + str(datetime.datetime.now()) + "\nGetting messages...")
+	app = Dark_Sky_Alert()
+	
+	app.execute() #run once
+
+	if app.settings.fetch_interval > 0:
+		while 1:
+			log("Sleeping for %s seconds...\n" % app.settings.fetch_interval)
+			sleep(app.settings.fetch_interval)
+			log("\n" + str(datetime.datetime.now()) + "\nGetting messages...")
+			app.execute()
+
 
 if __name__ == '__main__':
 	try:
