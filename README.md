@@ -16,7 +16,7 @@ Directions
 ==========
 
 1.  Clone the project into a directory on your box.
-2.  Save this IFTTT.com Recipe and update the "to" email address to your Recipes (http://path_to_iftt_recipe)
+2.  Save this IFTTT.com Recipe and update the "to" email address to your Recipes (https://ifttt.com/recipes/61656)
 3.  Edit the settings.py file. Use the comments to guide you.
 4.  Run darkskymail.py
 5.  Profit.
