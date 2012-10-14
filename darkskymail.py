@@ -5,6 +5,7 @@ import datetime
 import settings
 import json
 from time import sleep
+from imap_fetch import IMAP_Fetch
 
 class Dark_Sky_Alert:
 	def __init__(self):
@@ -22,7 +23,7 @@ class Dark_Sky_Alert:
 		geo_data = None
 		email_data = None
 
-		fetch = util.IMAP_Fetch()
+		fetch = IMAP_Fetch()
 		message_content = fetch.get_mail(self.settings.imap_server, self.settings.imap_port, self.settings.imap_user, self.settings.imap_password, self.settings.imap_use_ssl, self.settings.remove_messages_after_processed)
 
 		if message_content:
