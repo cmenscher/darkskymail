@@ -1,7 +1,7 @@
 What does this do?
 ===========
 
-This script checks an email inbox via IMAP for a message from IFTT that contains location and start time data for a Google Calendar event, triggered 15 minutes before it is scheduled to start. The script gathers the emails and emails a precipitation forecast for the Google Calendar event using the awesome Dark Sky API (https://developer.darkskyapp.com).  BUY THE APP! http://darkskyapp.com/
+This script checks an email inbox via IMAP for a message from IFTT that contains location and start time data for a Google Calendar event, triggered 15 minutes before it is scheduled to start. The script gathers the event's location info and emails a precipitation forecast for it using the awesome Dark Sky API (https://developer.darkskyapp.com).  BUY THE APP! http://darkskyapp.com/
 
 
 Requirements
