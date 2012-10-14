@@ -81,11 +81,12 @@ class Dark_Sky_Alert:
 		else:
 			body_text = "%s." % body_text
 
-		html = "<html><head></head><body>%s<p><img src='%s' /></p></body></html>" % (body_text, static_map_url)
-
-		#now add the static map URL to the body text
+		#now add the static map URL to the body
 		if self.settings.include_map:
+			html = "<html><head></head><body>%s<p><img src='%s' /></p><p><a href='http://darkskyapp.com'>Powered by Dark Sky</a></p></body></html>" % (body_text, static_map_url)
 			body_text = "%s\n\n%s" % (body_text, static_map_url)
+		else:
+			html = "<html><head></head><body>%s<p><a href='http://darkskyapp.com'>Powered by Dark Sky</a></p></body></html>" % (body_text, static_map_url)
 
 		alert = {"subject": subject, "body_text": body_text, "body_html": html}
 		return alert
