@@ -19,6 +19,7 @@ class IMAP_Fetch:
     self.imap_folder = settings.get("imap_folder", None)
     self.use_ssl = settings.get("use_ssl", True)
     self.delete_messages = settings.get("delete_messages", True)
+    self.fetch_subject_tag = settings.get("fetch_subject_tag", "[darkskymail]")
 
   def get_mail(self):
     try:
@@ -40,41 +41,39 @@ class IMAP_Fetch:
       self.error('Could not authenticate IMAP connection for "%s" on "%s": %s'
         % (self.imap_user, self.imap_server, str(dat)))
 
-    if self.imap_folder:
+    if self.imap_folder is None:
+      self.imap_folder = 'Inbox'
+
+    sel_type,sel_dat = mbox.select(self.imap_folder)
+    if(sel_type == "NO"):
+      log("IMAP folder '%s' not found.  Creating..." % self.imap_folder)
+      mbox.create(self.imap_folder)
       sel_type,sel_dat = mbox.select(self.imap_folder)
       if(sel_type == "NO"):
-        log("IMAP folder '%s' not found.  Creating..." % self.imap_folder)
-        mbox.create(self.imap_folder)
-        sel_type,sel_dat = mbox.select(self.imap_folder)
-        if(sel_type == "NO"):
-          error("Could not create IMAP folder %s." % self.imap_folder)
-    else:
-      mbox.select() #defaults to 'INBOX'
+        error("Could not create IMAP folder %s." % self.imap_folder)
 
-    typ, dat = mbox.search(None, 'ALL')
+    #typ, dat = mbox.search(None, 'ALL')
+    log('Searching for messages whose Subject contains "%s" in folder %s.' % (self.fetch_subject_tag, self.imap_folder))
+    typ, dat = mbox.search(None, 'SUBJECT', '"%s"' % self.fetch_subject_tag)
 
     deleteme = []
     message_content = None
+
     for num in dat[0].split():
       typ, dat = mbox.fetch(num, '(RFC822)')
       if typ != 'OK':
         self.error(dat[-1])
       message = dat[0][1]
 
-      #not sure if dat[0][0] is actually the subject!
-      headers = str(dat[0][1])
-      index = -1
-      index = headers.index("darkskymail")
+      message_content = self.process_message(message, num)
+      deleteme.append(num)
 
-      if(index > 0):
-        message_content = self.process_message(message, num)
-        deleteme.append(num)
-      else:
-        log("Message %s does not have [darkskymail] in subject line." % num)
+    if len(deleteme) > 0:
+      log("%d messages found!" % len(deleteme))
 
     if self.delete_messages:
       if deleteme == []:
-        log("No mails to be processed were found.")
+        log('No messages with "%s" in Subject line found in folder %s.' % (self.fetch_subject_tag, self.imap_folder))
 
       deleteme.sort()
       for number in deleteme:

@@ -30,10 +30,11 @@ class Dark_Sky_Alert:
 			"imap_password": self.settings.imap_password,
 			"use_ssl": self.settings.imap_use_ssl,
 			"delete_messages": self.settings.remove_messages_after_processed,
-			"imap_folder": self.settings.imap_folder
+			"imap_folder": self.settings.imap_folder,
+			"fetch_subject_tag": self.settings.fetch_subject_tag
 		}
+
 		fetch = IMAP_Fetch(**kwargs)
-		#message_content = fetch.get_mail(self.settings.imap_server, self.settings.imap_port, self.settings.imap_user, self.settings.imap_password, **kwargs)
 		message_content = fetch.get_mail()
 
 		if message_content:
@@ -56,13 +57,14 @@ class Dark_Sky_Alert:
 					loc =  geo_data["results"][0]["geometry"]["location"]
 					lat = loc["lat"]
 					lon = loc["lng"]
+					
+					forecast_data_val = util.get_forecast(self.settings.dark_sky_API_key, lat, lon)
+					forecast_data = json.loads(forecast_data_val)
+
+					email_data = {"address": address, "formatted_address": geo_data["results"][0]["formatted_address"], "start": start, "lat": lat, "lon": lon, "darksky": forecast_data}
 				else:
 					log("No location found for '%s'." % address)
-
-				forecast_data_val = util.get_forecast(self.settings.dark_sky_API_key, lat, lon)
-				forecast_data = json.loads(forecast_data_val)
-
-				email_data = {"address": address, "formatted_address": geo_data["results"][0]["formatted_address"], "start": start, "lat": lat, "lon": lon, "darksky": forecast_data}
+					email_data = {"address": None, "formatted_address": None, "start": start, "lat": None, "lon": None, "darksky": None}
 		else:
 			log("No Google event email found.")
 
@@ -85,10 +87,10 @@ class Dark_Sky_Alert:
 		if not email_data["darksky"]["isPrecipitating"]:
 			body_text = body_text + "not"
 
-		body_text = "%s raining at your next appointment ('%s'). It will be %s in the next hour" % (body_text, email_data["address"], email_data["darksky"]["hourSummary"])
+		body_text = '%s raining at your next appointment ("%s"). The forecast for the next hour is "%s"' % (body_text, email_data["address"], email_data["darksky"]["hourSummary"])
 
 		if self.settings.include_day_summary:
-			body_text = "%s, with %s through tomorrow." % (body_text, email_data["darksky"]["daySummary"])
+			body_text = '%s. Tomorrow\'s forecast is "%s".' % (body_text, email_data["darksky"]["daySummary"])
 		else:
 			body_text = "%s." % body_text
 
@@ -114,16 +116,23 @@ class Dark_Sky_Alert:
 
 		email_data = self.get_data()
 
-		if(email_data):
-			#only proceed if it's going to rain or the settings say to always send
-			if self.settings.send_even_when_clear or email_data["darksky"]["minutesUntilChange"] > 0:
-				alert = self.package_alert(email_data)
+		if email_data: #An event was found, but let's make sure it has a valid location
+			if not email_data["address"] and self.settings.send_no_location_error_email:
+				subject = "No location found for Google Calendar event..."
+				body_text = "An upcoming Google Calendar event was detected, but the precipitation forecast could not be generated because a valid location could not be found."
+				html = "<html><head></head><body>An upcoming Google Calendar event was detected, but the precipitation forecast could not be generated because a valid location could not be found.</body></html>"
+				error = {"subject": subject, "body_text": body_text, "body_html": html}
+				self.send_alert(error)
+			else: #location was found!
+				#only proceed if it's going to rain or the settings say to always send
+				if self.settings.send_even_when_clear or email_data["darksky"]["minutesUntilChange"] > 0:
+					alert = self.package_alert(email_data)
 
-				if(alert):
-					send_alert_result = self.send_alert(alert)
-			else:
-				log("NO ALERT EMAIL: It's not raining, nor will it in the next hour. (Change 'send_even_when_clear' setting to send anyway.)")
-		
+					if(alert):
+						send_alert_result = self.send_alert(alert)
+				else:
+					log("NO ALERT EMAIL: It's not raining, nor will it in the next hour. (Change 'send_even_when_clear' setting to send anyway.)")
+
 		return send_alert_result
 
 def main():

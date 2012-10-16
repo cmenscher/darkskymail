@@ -20,25 +20,30 @@ class Dark_Sky_Mail_Settings:
 		# ENTER YOUR FROM AND TO ADDRESSES HERE
 		self.alert_from = ""
 		self.alert_to = ""
-		self.alert_subject = None
+		self.alert_subject = None #If None defaults to "Current weather at your appointment on [START_DATE]"
 
-		#SET THIS TO TRUE TO INCLUDE ADDITIONAL SUMMARY INFO FOR THE NEXT 24HRS
+		# SET THIS TO TRUE TO INCLUDE ADDITIONAL SUMMARY INFO FOR THE NEXT 24HRS
 		self.include_day_summary = True
 
-		#SET THIS TO TRUE TO INCLUDE A STATIC GOOGLE MAP IMAGE (OR LINK TO IT IN TEXT EMAIL)
+		# SET THIS TO TRUE TO INCLUDE A STATIC GOOGLE MAP IMAGE (OR LINK TO IT IN TEXT EMAIL)
 		self.include_map = True
 
-		#SET THIS TO FALSE TO ONLY SEND ALERTS IF IT'S RAINING OR WILL RAIN WITHIN THE HOUR
+		# SET THIS TO FALSE TO ONLY SEND ALERTS IF IT'S RAINING OR WILL RAIN WITHIN THE HOUR
 		self.send_even_when_clear = True
 
 		# ENTER YOUR DARK SKY API KEY HERE
 		self.dark_sky_API_key = ""
 
 		# SET THIS TO TRUE TO DELETE THE IFTT MESSAGE FROM YOUR INBOX
+		# If you set this to False, you run the risk of getting stuck in a loop.
 		self.remove_messages_after_processed = True
 
 		# THE IMAP INBOX WILL BE CHECKED AT THIS INTERVAL
 		self.fetch_interval = 60 #in seconds
 
+		# ENTER THE TAG USED TO IDENTIFY IFTT GOOGLE CALENDAR EMAILS
+		self.fetch_subject_tag = "[darkskymail]"
+
 		# SET THIS TO TRUE TO SEE SOME DEBUG OUTPUT
 		self.show_log = True #outputs some messages to stderr if True
+		self.send_no_location_error_email = False #sends an error email if no location found via Google
