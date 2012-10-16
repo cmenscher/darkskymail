@@ -14,7 +14,8 @@ class Dark_Sky_Mail_Settings:
 		self.imap_password = ""
 		# If self.imap_folder is set to None, DarkSkyMail will look in "Inbox"
 		# Otherwise it will use this value.  If the mailbox name entered does
-		# not exist, it will be created.
+		# not exist, it will be created.  But this is kind of foolish because you'll probably
+		# need a filter to move messages into the desired folder anyway.
 		self.imap_folder = None
 
 		# ENTER YOUR FROM AND TO ADDRESSES HERE
