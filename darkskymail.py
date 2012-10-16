@@ -23,8 +23,18 @@ class Dark_Sky_Alert:
 		geo_data = None
 		email_data = None
 
-		fetch = IMAP_Fetch()
-		message_content = fetch.get_mail(self.settings.imap_server, self.settings.imap_port, self.settings.imap_user, self.settings.imap_password, self.settings.imap_use_ssl, self.settings.remove_messages_after_processed, self.settings.imap_folder)
+		kwargs = {
+			"imap_server": self.settings.imap_server,
+			"imap_port": self.settings.imap_port,
+			"imap_user": self.settings.imap_user,
+			"imap_password": self.settings.imap_password,
+			"use_ssl": self.settings.imap_use_ssl,
+			"delete_messages": self.settings.remove_messages_after_processed,
+			"imap_folder": self.settings.imap_folder
+		}
+		fetch = IMAP_Fetch(**kwargs)
+		#message_content = fetch.get_mail(self.settings.imap_server, self.settings.imap_port, self.settings.imap_user, self.settings.imap_password, **kwargs)
+		message_content = fetch.get_mail()
 
 		if message_content:
 			#turn the message content into actionable data

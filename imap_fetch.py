@@ -11,34 +11,43 @@ import imaplib
 
 class IMAP_Fetch:
 
-  def get_mail(self, host, port, imap_user, imap_password, use_ssl=True, delete_messages=False, imap_folder=None):
+  def __init__(self, **settings):
+    self.imap_server = settings["imap_server"]
+    self.imap_port = settings["imap_port"]
+    self.imap_user = settings["imap_user"]
+    self.imap_password = settings["imap_password"]
+    self.imap_folder = settings.get("imap_folder", None)
+    self.use_ssl = settings.get("use_ssl", True)
+    self.delete_messages = settings.get("delete_messages", True)
+
+  def get_mail(self):
     try:
-      if use_ssl:
-        mbox = imaplib.IMAP4_SSL(host, port)
+      if self.use_ssl:
+        mbox = imaplib.IMAP4_SSL(self.imap_server, self.imap_port)
       else:
-        mbox = imaplib.IMAP4(host, port)
+        mbox = imaplib.IMAP4(self.imap_server, self.imap_port)
     except:
       typ,val = sys.exc_info()[:2]
       self.error('Could not connect to IMAP server "%s": %s'
-          % (host, str(val)))
+          % (self.imap_server, str(val)))
 
     try:
-      typ,dat = mbox.login(imap_user, imap_password)
+      typ,dat = mbox.login(self.imap_user, self.imap_password)
     except:
       typ,dat = sys.exc_info()[:2]
 
     if typ != 'OK':
       self.error('Could not authenticate IMAP connection for "%s" on "%s": %s'
-        % (imap_user, host, str(dat)))
+        % (self.imap_user, self.imap_server, str(dat)))
 
-    if imap_folder:
-      sel_type,sel_dat = mbox.select(imap_folder)
+    if self.imap_folder:
+      sel_type,sel_dat = mbox.select(self.imap_folder)
       if(sel_type == "NO"):
-        log("IMAP folder '%s' not found.  Creating..." % imap_folder)
-        mbox.create(imap_folder)
-        sel_type,sel_dat = mbox.select(imap_folder)
+        log("IMAP folder '%s' not found.  Creating..." % self.imap_folder)
+        mbox.create(self.imap_folder)
+        sel_type,sel_dat = mbox.select(self.imap_folder)
         if(sel_type == "NO"):
-          error("Could not create IMAP folder %s." % imap_folder)
+          error("Could not create IMAP folder %s." % self.imap_folder)
     else:
       mbox.select() #defaults to 'INBOX'
 
@@ -63,7 +72,7 @@ class IMAP_Fetch:
       else:
         log("Message %s does not have [darkskymail] in subject line." % num)
 
-    if delete_messages:
+    if self.delete_messages:
       if deleteme == []:
         log("No mails to be processed were found.")
 
