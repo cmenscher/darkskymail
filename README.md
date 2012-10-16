@@ -21,6 +21,8 @@ Directions
 4.  Run darkskymail.py
 5.  Profit.
 
+![Sample Email](https://dl.dropbox.com/s/jsoj0a4klcz9hcs/screenshot_mailapp.png?dl=1)
+
 ***IMPORTANT***
 Once DarkSkyMail is running, be sure to include a valid address in the "location" field of the calendar event!  I am using the Google geocoding API, so it's quite forgiving if you don't use an exact/full address with postal codes, etc.  You can even use place names in some cases. ("Union Square New York" works, "721 Broadway New York" works, etc.)  But I recommend using an exact address whenever possible.
 
