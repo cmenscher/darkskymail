@@ -11,7 +11,7 @@ import imaplib
 
 class IMAP_Fetch:
 
-  def get_mail(self, host, port, imap_user, imap_password, use_ssl=True, delete_messages=False):
+  def get_mail(self, host, port, imap_user, imap_password, use_ssl=True, delete_messages=False, imap_folder=None):
     try:
       if use_ssl:
         mbox = imaplib.IMAP4_SSL(host, port)
@@ -28,12 +28,21 @@ class IMAP_Fetch:
       typ,dat = sys.exc_info()[:2]
 
     if typ != 'OK':
-      self.error('Could not open INBOX for "%s" on "%s": %s'
+      self.error('Could not authenticate IMAP connection for "%s" on "%s": %s'
         % (imap_user, host, str(dat)))
 
-    mbox.select('Inbox')
+    if imap_folder:
+      sel_type,sel_dat = mbox.select(imap_folder)
+      if(sel_type == "NO"):
+        log("IMAP folder '%s' not found.  Creating..." % imap_folder)
+        mbox.create(imap_folder)
+        sel_type,sel_dat = mbox.select(imap_folder)
+        if(sel_type == "NO"):
+          error("Could not create IMAP folder %s." % imap_folder)
+    else:
+      mbox.select() #defaults to 'INBOX'
+
     typ, dat = mbox.search(None, 'ALL')
-    mbox.create("DarkSkyMail")
 
     deleteme = []
     message_content = None

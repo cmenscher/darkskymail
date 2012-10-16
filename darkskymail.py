@@ -13,7 +13,7 @@ class Dark_Sky_Alert:
 
 	def get_data(self):
 		"""
-			This will fetch an email with that contains a [darksky] in the subject line and parse it.
+			This will fetch an email with that contains a [darkskymail] in the subject line and parse it.
 			The location will be searched, and if a lat/lon is returned the forecast will be retrieved
 			The result will be a dictionary:
 				{"address": ADDRESS, "lat": LAT, "lon": LONG, "darksky": DARKSKY_FORECAST_OBJECT }
@@ -24,7 +24,7 @@ class Dark_Sky_Alert:
 		email_data = None
 
 		fetch = IMAP_Fetch()
-		message_content = fetch.get_mail(self.settings.imap_server, self.settings.imap_port, self.settings.imap_user, self.settings.imap_password, self.settings.imap_use_ssl, self.settings.remove_messages_after_processed)
+		message_content = fetch.get_mail(self.settings.imap_server, self.settings.imap_port, self.settings.imap_user, self.settings.imap_password, self.settings.imap_use_ssl, self.settings.remove_messages_after_processed, self.settings.imap_folder)
 
 		if message_content:
 			#turn the message content into actionable data

@@ -29,9 +29,6 @@ def send_mail(smtp_server, smtp_user, smtppass, port, to, fro, subject, text, ht
   msg['Subject'] = subject
 
   msg.attach( MIMEText(text) )
-  #part.set_payload( open(filename,"rb").read() )
-  #Encoders.encode_base64(part)
-  #part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(filetitle))
   if attachment:
     attachment_part = MIMEBase('application', "octet-stream")
     try:
