@@ -22,7 +22,7 @@ Directions
 5.  Profit.
 
 ***IMPORTANT***
-Once DarkSkyMail is running, be sure to include a valid address in the "location" field of the calendar event!  I am using the Google geocoding API, so it's quite forgiving if you don't use an exact/full address with postal codes, etc.  You can even use place names in some cases. ("Union Square New York" works, "721 Broadway New York" works, etc.)
+Once DarkSkyMail is running, be sure to include a valid address in the "location" field of the calendar event!  I am using the Google geocoding API, so it's quite forgiving if you don't use an exact/full address with postal codes, etc.  You can even use place names in some cases. ("Union Square New York" works, "721 Broadway New York" works, etc.)  But I recommend using an exact address whenever possible.
 
 TIP:  This script works great when sending an email through an SMS gateway.  (i.e. 2122222222@vtext.com for a Verizon Wireless phone.)  But you might want to add a value to the "alert_subject" setting and make it shorter than the default.  You might also want to be sure to set the 'include_day_summary' and include_map' settings to False.
 
@@ -47,7 +47,3 @@ FAQ
 	The body of an event email is just the address you entered in the "location" field for the event, then a semicolon, then the start date and time of the event. Here's an example:
 
 	1600 Amphitheatre Pkwy, Mountain View, CA 94043;October 13, 2012 at 01:21AM
-
-4.  I have hundreds/thousands of emails in my inbox and this script iterates through each one every time.  This is useless to me.
-
-	I created this script to be used with a single-purpose email address to which IFTT can send these messages.  I don't know how to optimize finding these emails in a huge inbox, and since GMail is free and easy I just went with that solution.  But feel free to fix this!

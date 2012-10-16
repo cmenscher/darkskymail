@@ -61,7 +61,7 @@ def send_mail(smtp_server, smtp_user, smtppass, port, to, fro, subject, text, ht
   smtp.login(smtp_user, smtppass)
   smtp.sendmail(fro, to, msg.as_string() )
   smtp.close()
-  return 1
+  return True
 
 
 def search_for_venue(query):

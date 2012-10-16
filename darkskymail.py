@@ -108,6 +108,8 @@ class Dark_Sky_Alert:
 		""" This will take the alert and mail it """
 
 		send_alert_result = util.send_mail(self.settings.smtp_server, self.settings.smtp_user, self.settings.smtp_password, self.settings.smtp_port, [self.settings.alert_to], self.settings.alert_from, alert["subject"], alert["body_text"], alert["body_html"], [])
+		if send_alert_result:
+			log('Alert email sent! ("%s")' % alert['subject'])
 		return send_alert_result
 
 	def execute(self):
@@ -132,7 +134,6 @@ class Dark_Sky_Alert:
 						send_alert_result = self.send_alert(alert)
 				else:
 					log("NO ALERT EMAIL: It's not raining, nor will it in the next hour. (Change 'send_even_when_clear' setting to send anyway.)")
-
 		return send_alert_result
 
 def main():
