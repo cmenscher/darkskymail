@@ -7,9 +7,9 @@ This script checks an email inbox via IMAP for a message from IFTT that contains
 Requirements
 ============
 
-A Dark Sky API key (https://developer.darkskyapp.com/)
-An IMAP email inbox
-A box to run darkskymail.py as a service
+* A Dark Sky API key (https://developer.darkskyapp.com/)
+* An IMAP email inbox
+* A box to run darkskymail.py as a service
 
 
 Directions
@@ -19,7 +19,6 @@ Directions
 2.  Save this IFTTT.com Recipe and update the "to" email address to your Recipes (https://ifttt.com/recipes/61656)
 3.  Edit the settings.py file. Use the comments to guide you.
 4.  Run darkskymail.py
-5.  Profit.
 
 ![Sample Email](https://dl.dropbox.com/s/jsoj0a4klcz9hcs/screenshot_mailapp.png?dl=1)
 
