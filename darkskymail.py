@@ -47,6 +47,10 @@ class Dark_Sky_Alert:
 					when_re = re.compile("(When:\W)(.*)(\r)")
 					title_re = re.compile("(Title:\W)(.*)(\r)")
 
+					if len(where_re.findall(message_text)) == 0:
+						log("Found a Google Calendar event message, but no location specified.")
+						break
+
 					where = [fnd.group(2) for fnd in where_re.finditer(message_text)][0]
 					when = [fnd.group(2) for fnd in when_re.finditer(message_text)][0]
 					title = [fnd.group(2) for fnd in title_re.finditer(message_text)][0] 
