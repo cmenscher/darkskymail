@@ -4,6 +4,7 @@ import os, shutil
 import datetime
 import settings
 import json
+import re
 from time import sleep
 from imap_fetch import IMAP_Fetch
 
@@ -31,40 +32,62 @@ class Dark_Sky_Alert:
 			"use_ssl": self.settings.imap_use_ssl,
 			"delete_messages": self.settings.remove_messages_after_processed,
 			"imap_folder": self.settings.imap_folder,
-			"fetch_subject_tag": self.settings.fetch_subject_tag
+			"event_nofification_search_criteria": self.settings.fetch_from_address
 		}
 
 		fetch = IMAP_Fetch(**kwargs)
-		message_content = fetch.get_mail()
+		message_content = fetch.get_mail() #returns a list
 
 		if message_content:
-			#turn the message content into actionable data
-			message_data = message_content.split(';') #10/12/2003;257 Central Park West
-			if len(message_data) == 2:
-				start = message_data[1]
-				address = message_data[0]
-			else:
-				log("No message found with event content.")
-			
-			#TODO: handle non-address or bad-address values
-			geo_data_val = None
-			geo_data_val = util.search_for_venue(address)
-			if geo_data_val:
-				geo_data = json.loads(geo_data_val)
+			for part in message_content:
+				if part.has_key('text/plain'):
+					#turn the message content into actionable data
+					message_text = part['text/plain'] #grab the text/plain part
+					where_re = re.compile("(Where:\W)(.*)(\r)")
+					when_re = re.compile("(When:\W)(.*)(\r)")
+					title_re = re.compile("(Title:\W)(.*)(\r)")
 
-			if geo_data:
-				if len(geo_data["results"]) > 0:
-					loc =  geo_data["results"][0]["geometry"]["location"]
-					lat = loc["lat"]
-					lon = loc["lng"]
-					
-					forecast_data_val = util.get_forecast(self.settings.dark_sky_API_key, lat, lon)
-					forecast_data = json.loads(forecast_data_val)
+					where = [fnd.group(2) for fnd in where_re.finditer(message_text)][0]
+					when = [fnd.group(2) for fnd in when_re.finditer(message_text)][0]
+					title = [fnd.group(2) for fnd in title_re.finditer(message_text)][0] 
+					log("%s: %s at %s" % (title, where, when))
 
-					email_data = {"address": address, "formatted_address": geo_data["results"][0]["formatted_address"], "start": start, "lat": lat, "lon": lon, "darksky": forecast_data}
-				else:
-					log("No location found for '%s'." % address)
-					email_data = {"address": None, "formatted_address": None, "start": start, "lat": None, "lon": None, "darksky": None}
+					geo_data_val = None
+					geo_data_val = util.search_for_venue(where)
+					if geo_data_val:
+						geo_data = json.loads(geo_data_val)
+
+					email_data = {
+						"title": None,
+						"address": None,
+						"formatted_address": None,
+						"start": None,
+						"lat": None,
+						"lon": None,
+						"darksky": None
+					}
+
+					if geo_data:
+						if len(geo_data["results"]) > 0:
+							loc =  geo_data["results"][0]["geometry"]["location"]
+							lat = loc["lat"]
+							lon = loc["lng"]
+							
+							forecast_data_val = util.get_forecast(self.settings.dark_sky_API_key, lat, lon)
+							forecast_data = json.loads(forecast_data_val)
+
+							email_data = {
+								"title": title,
+								"address": where,
+								"formatted_address": geo_data["results"][0]["formatted_address"],
+								"start": when,
+								"lat": lat,
+								"lon": lon,
+								"darksky": forecast_data
+							}
+							#log(email_data)
+						else:
+							log("No location found for '%s'." % where)
 		else:
 			log("No Google event email found.")
 
@@ -73,7 +96,7 @@ class Dark_Sky_Alert:
 	def package_alert(self, email_data):
 		""" This will create the alert text based on the captured venue and forecast data """
 		alert = None
-		subject = "Current weather at your appointment on %s" % email_data["start"]
+		subject = 'Current weather for calendar item "%s"' % email_data["title"]
 
 		#This will override the default subject with the custom subject in settings.py
 		#This is particularly useful if you send the text as an SMS (to shorten it)
@@ -87,7 +110,7 @@ class Dark_Sky_Alert:
 		if not email_data["darksky"]["isPrecipitating"]:
 			body_text = body_text + "not"
 
-		body_text = '%s raining at your next appointment ("%s"). The forecast for the next hour is "%s"' % (body_text, email_data["address"], email_data["darksky"]["hourSummary"])
+		body_text = '%s raining at your upcoming appointment\'s location ("%s"). The forecast for the next hour is "%s"' % (body_text, email_data["address"], email_data["darksky"]["hourSummary"])
 
 		if self.settings.include_day_summary:
 			body_text = '%s. Tomorrow\'s forecast is "%s".' % (body_text, email_data["darksky"]["daySummary"])
@@ -109,7 +132,7 @@ class Dark_Sky_Alert:
 
 		send_alert_result = util.send_mail(self.settings.smtp_server, self.settings.smtp_user, self.settings.smtp_password, self.settings.smtp_port, [self.settings.alert_to], self.settings.alert_from, alert["subject"], alert["body_text"], alert["body_html"], [])
 		if send_alert_result:
-			log('Alert email sent! ("%s")' % alert['subject'])
+			log('Alert email sent! (Subj: %s)' % alert['subject'])
 		return send_alert_result
 
 	def execute(self):

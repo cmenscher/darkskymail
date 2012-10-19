@@ -1,7 +1,7 @@
 What does this do?
 ===========
 
-This script checks an email inbox via IMAP for a message from IFTT that contains location and start time data for a Google Calendar event, triggered 15 minutes before it is scheduled to start. The script gathers the event's location info and emails a precipitation forecast for it using the awesome Dark Sky API (https://developer.darkskyapp.com).  BUY THE APP! http://darkskyapp.com/
+This script checks an email inbox via IMAP for a message that contains location and start time data for a Google Calendar event, triggered 15 minutes before it is scheduled to start. The script gathers the event's location info and emails a precipitation forecast for it using the awesome Dark Sky API (https://developer.darkskyapp.com).  BUY THE APP! http://darkskyapp.com/
 
 
 Requirements
@@ -16,9 +16,10 @@ Directions
 ==========
 
 1.  Clone the project into a directory on your box.
-2.  Save this IFTTT.com Recipe and update the "to" email address to your Recipes (https://ifttt.com/recipes/61656)
-3.  Edit the settings.py file. Use the comments to guide you.
-4.  Run darkskymail.py
+2.  Edit the settings.py file. Use the comments to guide you.
+3.  Run darkskymail.py
+
+After it's running, you'll need to create email reminders for your events sent to the email address in settings.py ("alert_to") for no earlier than one hour prior to the event.  (DarkSky will only give you a forecast for the next hour.)
 
 ![Sample Email](https://dl.dropbox.com/s/jsoj0a4klcz9hcs/screenshot_mailapp.png?dl=1)
 
@@ -29,22 +30,3 @@ TIP:  This script works great when sending an email through an SMS gateway.  (i.
 
 
 ![Sample SMS](https://dl.dropbox.com/s/7ky4ej5d90r17pd/screenshot_sms.png?dl=1)
-
-FAQ
-===
-
-1.  Will this work internationally?
-
-	I don't see why not.
-
-2.  Receiving the message only 15 minutes before the event starts is kind of useless to me.  Can I change this?
-	
-	Currently, IFTT.com will only trigger the email 15 minutes before the event, and there is no way to alter this.  I would recommend complaining to them that you'd like to see at least SOME options (15 min, 30 min, 1 hr, etc.)  My original plan was to simply use a Google event's "email alert" feature, but there is seemingly no way to programmatically format the email to include a) just the data I want and b) in a format that's easily parseable.
-
-3.  What does the email data look like?
-	
-	The subject of an email must have "[darkskymail]" in it or the script will skip right over it.
-
-	The body of an event email is just the address you entered in the "location" field for the event, then a semicolon, then the start date and time of the event. Here's an example:
-
-	1600 Amphitheatre Pkwy, Mountain View, CA 94043;October 13, 2012 at 01:21AM

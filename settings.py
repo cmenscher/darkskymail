@@ -35,15 +35,16 @@ class Dark_Sky_Mail_Settings:
 		# ENTER YOUR DARK SKY API KEY HERE
 		self.dark_sky_API_key = ""
 
-		# SET THIS TO TRUE TO DELETE THE IFTT MESSAGE FROM YOUR INBOX
+		# SET THIS TO TRUE TO DELETE THE REMINDER MESSAGE FROM YOUR INBOX
 		# If you set this to False, you run the risk of getting stuck in a loop.
+		# But, it's useful for debugging.
 		self.remove_messages_after_processed = True
 
 		# THE IMAP INBOX WILL BE CHECKED AT THIS INTERVAL
 		self.fetch_interval = 60 #in seconds
 
-		# ENTER THE TAG USED TO IDENTIFY IFTT GOOGLE CALENDAR EMAILS
-		self.fetch_subject_tag = "[darkskymail]"
+		# ENTER THE FROM ADDRESS FOR IDENTIFYING GOOGLE CALENDAR EMAILS
+		self.fetch_from_address = "calendar-notification@google.com"
 
 		# SET THIS TO TRUE TO SEE SOME DEBUG OUTPUT
 		self.show_log = True #outputs some messages to stderr if True

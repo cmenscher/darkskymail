@@ -19,7 +19,7 @@ class IMAP_Fetch:
     self.imap_folder = settings.get("imap_folder", None)
     self.use_ssl = settings.get("use_ssl", True)
     self.delete_messages = settings.get("delete_messages", True)
-    self.fetch_subject_tag = settings.get("fetch_subject_tag", "[darkskymail]")
+    self.event_notification_search_criteria = settings.get("fetch_from_address", "calendar-notification@google.com")
 
   def get_mail(self):
     try:
@@ -52,9 +52,8 @@ class IMAP_Fetch:
       if(sel_type == "NO"):
         error("Could not create IMAP folder %s." % self.imap_folder)
 
-    #typ, dat = mbox.search(None, 'ALL')
-    log('Searching for messages whose Subject contains "%s" in folder %s.' % (self.fetch_subject_tag, self.imap_folder))
-    typ, dat = mbox.search(None, 'SUBJECT', '"%s"' % self.fetch_subject_tag)
+    log('Searching for messages from "%s" in folder %s.' % (self.event_notification_search_criteria, self.imap_folder))
+    typ, dat = mbox.search(None, 'FROM', '"%s"' % self.event_notification_search_criteria)
 
     deleteme = []
     message_content = None
@@ -65,7 +64,7 @@ class IMAP_Fetch:
         self.error(dat[-1])
       message = dat[0][1]
 
-      message_content = self.process_message(message, num)
+      message_content = self.process_message(message)
       deleteme.append(num)
 
     if len(deleteme) > 0:
@@ -73,7 +72,7 @@ class IMAP_Fetch:
 
     if self.delete_messages:
       if deleteme == []:
-        log('No messages with "%s" in Subject line found in folder %s.' % (self.fetch_subject_tag, self.imap_folder))
+        log('No messages with "%s" in From address found in folder %s.' % (self.event_notification_search_criteria, self.imap_folder))
 
       deleteme.sort()
       for number in deleteme:
@@ -92,20 +91,21 @@ class IMAP_Fetch:
     sys.stderr.write('%s\n' % reason)
     sys.exit(1)
 
-  def process_message(self, email_text, msgnum):
+
+  def process_message(self, email_text, decode=True):
     """ 
-      Loop over each line of the message to get the content
+      Loop over each part of the message to get the content.
     """
     msg = email.message_from_string(email_text)
-    bodylines = list(typed_subpart_iterator(msg, "text", "plain"))
-    message_content = None
-    while(bodylines):
-      line = bodylines.pop(0)
-      thisline = str(line).strip()
-      thisline_escaped = thisline.encode('string-escape')
-      headerEnd = thisline.find("\n\n") #end of the mail headers
-      headerEnd = headerEnd + 2 #ignore the \n's
-      msg_txt = thisline[headerEnd:]
-      message_content = str(msg_txt)
+    message_content = list()
 
+    msg_payload_type = None
+    msg_payload_body = None
+    parts = list(typed_subpart_iterator(msg, "text"))
+    for part in parts:
+        msg_payload_type = part.get_content_type()
+        msg_payload_body = part.get_payload(None, True) #True decodes base64 if necessary
+        message_content.append({msg_payload_type: msg_payload_body})
+    #log(message_content)
     return message_content
+
